@@ -6,7 +6,7 @@ const router = express.Router();
 const bcrypt = require("bcrypt");
 const dotenv = require("dotenv").config();
 const jwt = require("jsonwebtoken");
-const error_handler = require("../errorHandler");
+const error_handler = require("../middleware/errorHandler");
 const userSchema = require("../models/usersSchema");
 
 

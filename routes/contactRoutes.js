@@ -3,7 +3,7 @@ This file is responsible for routing through the application and responsible for
 */ 
 
 const express = require("express");
-const error_handler = require("../errorHandler");
+const error_handler = require("../middleware/errorHandler");
 const contactsSchema = require("../models/contactsSchema");
 const router = express.Router();
 
