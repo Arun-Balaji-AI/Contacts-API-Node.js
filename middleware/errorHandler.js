@@ -7,6 +7,7 @@ const constants = {
     UNAUTHORIZED: 401,
     FORBIDDEN: 403,
     NOT_FOUND: 404,
+    SESSION_EXPIRED : 440,
     SERVER_ERROR : 500
 }
 
@@ -48,6 +49,14 @@ const errorHandler = (err, req, res) => {
         case constants.SERVER_ERROR:{
             res.json({
                 title: "Server Error",
+                message: err.message,
+                stackTrace: err.stack
+            });
+            break;
+        }
+        case constants.SESSION_EXPIRED: {
+            res.json({
+                title: "Session Expired",
                 message: err.message,
                 stackTrace: err.stack
             });
