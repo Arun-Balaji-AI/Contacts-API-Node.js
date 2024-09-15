@@ -8,7 +8,7 @@ const dotenv = require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const error_handler = require("../middleware/errorHandler");
 const userSchema = require("../models/usersSchema");
-
+const validateToken = require("../middleware/validateToken");
 
 router.route("/register").post(async (req, res) => {
     try {
@@ -23,7 +23,6 @@ router.route("/register").post(async (req, res) => {
             throw new Error("User Already Registered");
         }
         const hashedPassword = await bcrypt.hash(password, 10);
-        console.log(hashedPassword);
         const user = await userSchema.create({ userName, email, password: hashedPassword });
         if (user) {
             res.status(201).json({message : "User Registered Successfully" , id : user._id})
@@ -56,13 +55,13 @@ router.route("/login").post(async (req, res) => {
             res.status(401);
             throw new Error("Invalid user name or password");
         }
-
-        const accessToken = jwt.sign({
+        let accessToken = jwt.sign({
             user: {
-                user_name: user.userName,
+                user_id : user.id,
+                userName: user.userName,
                 email: user.email
             }
-        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "2m" });
+        }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "5m" });
 
         res.status(200).json({ message: "Logged in successfully" , accessToken : accessToken});
     }
@@ -73,8 +72,8 @@ router.route("/login").post(async (req, res) => {
 
 
 //Making the connection private
-router.route("/current").post((req, res) => {
-    
+router.route("/current").post(validateToken, async (req, res) => {
+    res.json(req.user);
 }); 
 
 module.exports = router;

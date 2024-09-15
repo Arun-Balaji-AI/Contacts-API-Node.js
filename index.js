@@ -12,7 +12,7 @@ const port = process.env.PORT;
 connectDB();
 
 app.use(express.json());
-app.use("/api/contacts", contactRouter);
+app.use("/api/contacts" , contactRouter);
 app.use("/api/users", userRouter);
 
 

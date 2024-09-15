@@ -1,35 +1,37 @@
 const jwt = require("jsonwebtoken");
-const error_handler = require("./errorHandler");
+const errorHandler = require("./errorHandler");
 
 const validateToken = (req, res, next) => {
-    try {
-        let authHeader = req.headers.Authentication || req.headers.authentication;
-        
-        if (!authHeader || !(authHeader.startsWith("Bearer"))) {
-            res.status(401);
-            throw new Error("Unauthorized Access of user information");
-        }
+   try {
+       let authHeader = req.headers.Authorization || req.headers.authorization;
+       
+        if (authHeader && authHeader.startsWith("Bearer")) {
+            let token = authHeader.split(" ")[1];
 
-        let token = authHeader.split(" ")[1];
-        
-        if (!token) {
-            res.status(401);
-            throw new Error("User unauthorized");
-        }
-        
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
-            if (err) {
-                res.status(440);
-                throw new Error("Login session has expired");
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    res.status(401);
+                    throw new Error("Unauthorized Access");
+                }
+
+                req.user = decoded.user;
+                next();
+            });
+            if (!token) {
+                res.status(401);
+                throw new Error("Unauthorized Access");
             }
-
-            res.user = decoded.user;
-            next();
-        });
+       }
+        else {
+            res.status(401);
+            throw new Error("Access Denied");
+       }
+       
     }
-    catch (err) {
-        error_handler(err, req, res);
+   catch (err) {
+       errorHandler(err, req, res);
     }
 }
+
 
 module.exports = validateToken;

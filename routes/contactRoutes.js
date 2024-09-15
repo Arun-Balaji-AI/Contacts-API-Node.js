@@ -5,11 +5,14 @@ This file is responsible for routing through the application and responsible for
 const express = require("express");
 const error_handler = require("../middleware/errorHandler");
 const contactsSchema = require("../models/contactsSchema");
+const validateToken = require("../middleware/validateToken");
 const router = express.Router();
 
+router.use(validateToken);
 router.route("/").get(async (req, res) => {
     try {
-        const contact = await contactsSchema.find();
+        const user_id = req.user_id;
+        const contact = await contactsSchema.find({ user_id : req.user.user_id });
         if (!contact) {
             res.status(404);
             throw new Error("No Contacts Available to show");
@@ -45,9 +48,11 @@ router.route("/").post(async (req, res) => {
             res.status(400);
             throw new Error("All fields are mandatory");
         }
+        console.log(req.user);
         const contact = await contactsSchema.create({
-            name , email , phone
+            user_id: req.user.user_id , name , email , phone
         });
+        console.log(contact);
         res.status(201).json({ message: "Contact Created" , data : contact});
     }
     catch (err) {
@@ -62,6 +67,10 @@ router.route("/:id").put(async (req, res) => {
         if (!contact) {
             res.status(404);
             throw new Error("Contact Not Found");
+        }
+        if (contact.user_id.toString() != req.user.user_id) {
+            res.status(403);
+            throw new Error("Unauthorized Access");
         }
         const body = req.body;
         await contactsSchema.findByIdAndUpdate(id, body, { new: true });
@@ -83,9 +92,11 @@ router.route("/:id").delete(async (req, res) => {
             res.status(404);
             throw new Error("Contact Not Found");
         }
-        console.log("Contact found");
+        if (contact.user_id.toString() != req.user.user_id) {
+            res.status(403);
+            throw new Error("Unauthorized Access");
+        }
         await contactsSchema.findByIdAndDelete(id);
-        console.log("Contact Deleted");
         res.status(200).json({ message: "Contact deleted successfully", data: contact });
 
     }
